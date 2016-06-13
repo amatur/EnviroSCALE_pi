@@ -3,6 +3,9 @@ from adc import readadc
 from Sensor import Sensor
 from my_libs import *
 
+setup_logging()
+log = logging.getLogger("MQ135Exception")
+
 class MQ135(Sensor):
     def __init__(self, analog):
         self.analog = analog
