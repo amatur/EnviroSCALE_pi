@@ -3,15 +3,12 @@ from adc import readadc
 import time
 import math
 from my_libs import *
-
-setup_logging()
-log = logging.getLogger("MQ6Exception")
-
-#/*******************Demo for MQ-6 Gas Sensor Module V1.3*****************************
-
-#/************************Hardware Related Macros************************************/
 from Sensor import Sensor
 
+setup_logging()
+log = logging.getLogger("<MQ6>")
+
+#/*******************Demo for MQ-6 Gas Sensor Module V1.3*****************************
 class MQ6(Sensor):
     def __init__(self, analog):
         self.analog = analog
@@ -32,7 +29,6 @@ class MQ6(Sensor):
         self.GAS_LPG = 0
         self.GAS_CH4 = 1
 
-
         #/*****************************Globals***********************************************/
         self.LPGCurve  =  [3,   0,  -0.4]    # //two points are taken from the curve.
                                         # //with these two points, a line is formed which is "approximately equivalent"
@@ -45,7 +41,7 @@ class MQ6(Sensor):
                                         #//data format:{ x, y, slope}; point1: (lg2000, lg1), point2: (lg5000,  lg0.7)
         #Ro = 10     #Ro is initialized to 10 kilo ohms
         self.Ro = 31		#after 1st calibration
-
+        self.Ro = self.MQCalibration()
 
 # /****************** MQResistanceCalculation ****************************************
 # Input:   raw_adc - raw value read from adc, which represents the voltage
@@ -69,15 +65,22 @@ class MQ6(Sensor):
 #          10, which differs slightly between different sensors.
     # ************************************************************************************/
     def MQCalibration(self):
-      val=0;
-      for i in range(0, self.CALIBARAION_SAMPLE_TIMES): #take multiple samples
-        val += self.MQResistanceCalculation(readadc(self.analog))
-        time.sleep(self.CALIBRATION_SAMPLE_INTERVAL)
-      val = val/self.CALIBARAION_SAMPLE_TIMES;                   #calculate the average value
+          val=0
+          raw_calib = readadc(self.analog)
+          for i in range(0, self.CALIBARAION_SAMPLE_TIMES): #take multiple samples
+            val += self.MQResistanceCalculation(readadc(self.analog))
+            time.sleep(self.CALIBRATION_SAMPLE_INTERVAL)
+          val = val/self.CALIBARAION_SAMPLE_TIMES;                   #calculate the average value
 
-      val = val/self.RO_CLEAN_AIR_FACTOR;                        #divided by RO_CLEAN_AIR_FACTOR yields the Ro
-                                                            #according to the chart in the datasheet
-      return val
+          val = val/self.RO_CLEAN_AIR_FACTOR;                        #divided by RO_CLEAN_AIR_FACTOR yields the Ro
+                                                                #according to the chart in the datasheet
+          edit_calib_config("MQ6", val)
+          edit_calib_config("MQ6_RAW", raw_calib)
+          log.info("Calibrated, Ro = " + str(val))
+          if(self.verbose):
+                print "<{}> :: Calibration is done...".format(self.device_name)
+                print "<{}> :: Ro = ".format(self.device_name), self.Ro , " kohm"
+          return val
 
 # /*****************************  MQRead *********************************************
 # Input:   mq_pin - analog channel
@@ -124,28 +127,17 @@ class MQ6(Sensor):
         return (pow(10, (((math.log10(rs_ro_ratio)-pcurve[1])/pcurve[2]) + pcurve[0])))
 
 
-
     def read(self):
         lpg = -1
         ch4 = -1
-        try:
-            if(self.verbose):
-                print "<{}> :: Calibrating..."
-            Ro = self.MQCalibration() #            #Calibrating the sensor. Please make sure the sensor is in clean air
-                                                   #when you perform the calibration
-            if(self.verbose):
-                print "<{}> :: Calibration is done...".format(self.device_name)
-                print "<{}> :: Ro = ".format(self.device_name), Ro , " kohm"
-            lpg = self.MQGetGasPercentage(self.MQRead() / Ro, self.GAS_LPG)
-            ch4 = self.MQGetGasPercentage(self.MQRead() / Ro, self.GAS_CH4)
+        try:        
+            lpg = self.MQGetGasPercentage(self.MQRead() / self.Ro, self.GAS_LPG)
+            ch4 = self.MQGetGasPercentage(self.MQRead() / self.Ro, self.GAS_CH4)
             if(self.verbose):
                 print "<{}> :: LPG:".format(self.device_name), lpg, "ppm"
                 print "<{}> :: CH4:".format(self.device_name), ch4, "ppm"
         except:
-            eprint("ERROR in READ...PI/sensors/mq6.py")
-            log.exception('ERROR in READ...PI/sensors/mq6.py')
+            eprint("<MQ6> ERROR in READ...sensors/mq6.py")
+            log.error('ERROR in READ...sensors/mq6.py')
         return lpg, ch4
 
-#USAGE EXAMPLE
-# sensor = MQ6(2)
-# sensor.takeAvgReading(3)

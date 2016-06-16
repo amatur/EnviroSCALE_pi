@@ -4,14 +4,14 @@ from Sensor import Sensor
 from my_libs import *
 
 setup_logging()
-log = logging.getLogger("MQ135Exception")
+log = logging.getLogger("<MQ135>")
 
 class MQ135(Sensor):
     def __init__(self, analog):
         self.analog = analog
         self.interval = 0
         self.verbose = False
-        self.device_name = "MQ135"
+        self.device_name = "MQ135"    
         #
         self.ADC_CHANNEL = analog
         self.RLOAD = 40.0
@@ -151,9 +151,11 @@ class MQ135(Sensor):
 
                 time.sleep(0.5)
         except Exception as e:
-            #print e
-            #eprint("ERROR in CALIIIIIIIIIIIIIIIIII")
-            log.exception('ERROR in CALIBRATE...PI/sensors/mq135.py')
+            log.error('ERROR in CALIBRATE...sensors/mq135.py')
+        raw_calib = readadc(self.analog)
+        edit_calib_config("MQ135", avg)
+        edit_calib_config("MQ135_RAW", raw_calib)
+        log.info('Calibrated, RZERO = '+str(avg))
         return avg
 
     def getDelayedReading(self):
@@ -167,8 +169,8 @@ class MQ135(Sensor):
             if (self.verbose):
                 print "<{0}> CO2 conc. = {1}".format(self.device_name, pp)
         except:
-            eprint("ERROR in READ...PI/sensors/mq135.py")
-            
+            eprint("<MQ135> ERROR in READ...sensors/mq135.py")
+            log.error("ERROR in READ...sensors/mq135.py")
         return pp
 
 # sensor = MQ135(2)

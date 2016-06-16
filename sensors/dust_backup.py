@@ -5,15 +5,12 @@ import RPi.GPIO as GPIO  # import RPi.GPIO module
 from Sensor import Sensor
 from my_libs import *
 
-setup_logging()
-log = logging.getLogger("<DUST>")
-
 # delay = 0.2 second
 GPIO.setwarnings(False)
 
 
 class Dust(Sensor):
-    def __init__(self, analog, digital):
+    def __init__(self, analog, digital, no_dust_vol):
         self.analog = analog
         self.digital = digital
         self.device_name = "DUST"
@@ -21,7 +18,7 @@ class Dust(Sensor):
         self.verbose = False
 
         self.COV_RATIO = 0.2  # ug/mmm / mv
-        self.NO_DUST_VOLTAGE = 5750  # mv
+        self.NO_DUST_VOLTAGE = no_dust_vol  # mv
         self.SYS_VOLTAGE = 5000  # mv
 
         self.samplingTime = .280 / 1000
@@ -47,23 +44,6 @@ class Dust(Sensor):
         self.flag_first = 0
         self.summ = 0
         self.buff = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        self.NO_DUST_VOLTAGE = self.calibrate()
-
-    def calibrate(self):
-	i = 0
-	total = 0
-	while i < 50:
-	    total += self.read()[1]
-	    i += 1
-	mean = total / 50.0
-	edit_calib_config("DUST_RAW", mean)
-	mean = (self.SYS_VOLTAGE / 1024.0) * mean * 11
-	no_dust = mean
-	edit_calib_config("DUST", no_dust)
-	log.info("Calibrated, NO_DUST_VOLTAGE = " + str(no_dust))
-	self.NO_DUST_VOLTAGE = no_dust
-	return no_dust
-	
 
     def Filter(self, m):  # flag_first is 0 for first call, then 1 always
         if self.flag_first == 0:

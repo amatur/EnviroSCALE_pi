@@ -3,7 +3,7 @@ from socket import *
 from my_libs import *
 
 setup_logging()
-log = logging.getLogger("MQTTException")
+log = logging.getLogger("<MQTT>")
 
 
 ####################################################
@@ -17,7 +17,7 @@ def publish(topic, message):
         return True
 
     except gaierror:
-        log.exception('[MQTT] Publish ERROR.', exc_info=True)
+        log.error('[MQTT] Publish ERROR.')
         eprint ("[MQTT] Publish ERROR." )
         return False
 
@@ -30,7 +30,7 @@ def publish_packet(message):
         return True
 
     except gaierror:
-        log.exception('[MQTT] Publish ERROR.', exc_info=True)
+        log.error('[MQTT] Publish ERROR.')
         eprint ("[MQTT] Publish ERROR." )
         return False
 
@@ -42,7 +42,7 @@ def publish_packet_raw(message):
         return True
 
     except gaierror:
-        log.exception('[MQTT] Publish ERROR.', exc_info=True)
+        log.error('[MQTT] Publish ERROR.')
         eprint ("[MQTT] Publish ERROR." )
         return False
 
@@ -55,7 +55,6 @@ def test_connection():
         return True
 
     except gaierror:
-        log.exception('[MQTT] Connection Test ERROR.', exc_info=True)
+        log.error('[MQTT] Connection Test ERROR.')
         eprint ("[MQTT] Connection Test ERROR." )
         return False
-

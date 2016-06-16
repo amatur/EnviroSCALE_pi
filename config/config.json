@@ -1,1 +1,1 @@
-{"SENSE_INTERVAL": 10, "TX_MEDIUM": "wlan0", "MQTT_BROKER_HOSTNAME": "iot.eclipse.org", "RUNTIME": 86400}
+{"SENSE_INTERVAL": 10, "TX_MEDIUM": "ppp0", "MQTT_BROKER_HOSTNAME": "iot.eclipse.org", "RUNTIME": 86400}
