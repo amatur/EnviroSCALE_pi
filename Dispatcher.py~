@@ -111,7 +111,7 @@ def sense_a_bundle():
     data_raw["lat"] = data["lat"]
     data_raw["long"] = data["long"]
     # time
-    data["time"] = int(time.time())
+    data["time"] = get_timestamp()
     data_raw["time"] = data["time"]
 
     
@@ -145,7 +145,7 @@ def encode_structpack(data):
     Returns:
         36 bytes struct.pack
     '''
-    packed = pack('ifffffffff', (data["time"]), (data["ch4"]), (data["lpg"]), (data["co2"]),
+    packed = pack('ffffffffff', (data["time"]), (data["ch4"]), (data["lpg"]), (data["co2"]),
                   (data["dust"]), (data["temp"]),
                   (data["humidity"]), (data["lat"]), (data["long"]), data["cng"])
     return packed
@@ -181,7 +181,7 @@ def upload_a_packet():
 
     if (mqtt.publish_packet(b)==False):
         #traceback.print_exc()
-        bb = (unpack('ifffffffff', pack1))
+        bb = (unpack('ffffffffff', pack1))
         strnew = "missing\t"
         for i in range(0,10):
             strnew = strnew + str(bb[i]) + "\t"
@@ -189,7 +189,7 @@ def upload_a_packet():
         
     if (mqtt.publish_packet_raw(b2)==False):
         #traceback.print_exc()
-        bb = (unpack('ifffffffff', pack2))
+        bb = (unpack('ffffffffff', pack2))
         strnew = "missing_raw\t"
         for i in range(0,10):
             strnew = strnew + str(bb[i]) + "\t"
@@ -341,4 +341,3 @@ CircuitsApp.run()
 if __name__ == '__main__':
     (App() + Debugger()).run()
     log.info("Keyboard Exit.")
-
